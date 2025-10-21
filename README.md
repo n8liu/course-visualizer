@@ -4,10 +4,10 @@ A 3D force-directed graph visualization of UC Berkeley courses, built with Next.
 
 ## Features
 
-- **3D Course Visualization**: Interactive 3D force-directed graph showing course relationships
+- **3D Course Visualization**: Interactive 3D force-directed graph with animated prerequisite connections
 - **Course Search**: Fuzzy search with command palette interface  
 - **Department Filtering**: Filter 9,733+ courses by department with interactive sidebar
-- **Prerequisite Tracking**: Visualize course prerequisites and postrequisites
+- **Prerequisite Tracking**: Visual lines showing course dependencies with smart highlighting
 - **Course Ratings**: Realistic BerkeleyEval ratings for course evaluation
 - **Real-time Statistics**: Live course and connection counts
 - **Modern UI**: Dark mode support with Tailwind CSS and Radix UI components
@@ -127,9 +127,12 @@ Course ratings use deterministic, realistic mock data:
 
 ### 3D Visualization
 - **Force-directed graph**: Physics-based layout showing course relationships
+- **Prerequisite lines**: Visual connections between related courses with animated particles
+- **Smart highlighting**: When you select a course, its prerequisite connections glow green
 - **Interactive nodes**: Click to focus and zoom on specific courses
 - **Color coding**: Nodes colored by department (COMPSCI, MATH, etc.)
 - **Smooth animations**: Camera transitions and node interactions
+- **Directional arrows**: Show the direction of prerequisite requirements
 
 ### Search and Navigation
 - **Fuzzy search**: Find courses by code or name

@@ -220,6 +220,41 @@ export default function Home() {
         linkDirectionalArrowLength={3.5}
         linkDirectionalArrowRelPos={1}
         linkCurvature={0.25}
+        linkWidth={(link) => {
+          if (!focusedCourse) return 2;
+          const source = typeof link.source === 'object' ? link.source.id : link.source;
+          const target = typeof link.target === 'object' ? link.target.id : link.target;
+          return source === focusedCourse.id || target === focusedCourse.id ? 4 : 1;
+        }}
+        linkColor={(link) => {
+          if (!focusedCourse) return "rgba(100, 150, 255, 0.6)";
+          const source = typeof link.source === 'object' ? link.source.id : link.source;
+          const target = typeof link.target === 'object' ? link.target.id : link.target;
+          // Highlight links connected to focused course
+          if (source === focusedCourse.id || target === focusedCourse.id) {
+            return "rgba(34, 197, 94, 0.9)"; // Green for connected
+          }
+          return "rgba(100, 150, 255, 0.2)"; // Dimmed blue for others
+        }}
+        linkOpacity={(link) => {
+          if (!focusedCourse) return 0.6;
+          const source = typeof link.source === 'object' ? link.source.id : link.source;
+          const target = typeof link.target === 'object' ? link.target.id : link.target;
+          return source === focusedCourse.id || target === focusedCourse.id ? 0.9 : 0.2;
+        }}
+        linkDirectionalParticles={(link) => {
+          if (!focusedCourse) return 2;
+          const source = typeof link.source === 'object' ? link.source.id : link.source;
+          const target = typeof link.target === 'object' ? link.target.id : link.target;
+          return source === focusedCourse.id || target === focusedCourse.id ? 4 : 0;
+        }}
+        linkDirectionalParticleWidth={3}
+        linkDirectionalParticleSpeed={0.006}
+        linkLabel={(link) => {
+          const source = typeof link.source === 'object' ? link.source.id : link.source;
+          const target = typeof link.target === 'object' ? link.target.id : link.target;
+          return `Prerequisite: ${source} → ${target}`;
+        }}
         ref={fgRef}
         onNodeClick={focusNode}
         enableNodeDrag={false}

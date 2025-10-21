@@ -40,6 +40,8 @@ When you select a course, you'll see:
 - **Rotate**: Click and drag
 - **Zoom**: Scroll wheel
 - **Focus**: Click any node to zoom in
+- **See Prerequisites**: Blue lines connect courses (animated particles show direction)
+- **Highlight Connections**: Select a course to see its prerequisite links glow green
 - **Clear selection**: Click the X button or press the clear button
 
 ### View Statistics
