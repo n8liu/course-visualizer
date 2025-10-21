@@ -5,10 +5,13 @@ A 3D force-directed graph visualization of UC Berkeley courses, built with Next.
 ## Features
 
 - **3D Course Visualization**: Interactive 3D force-directed graph showing course relationships
-- **Course Search**: Fuzzy search with command palette interface
+- **Course Search**: Fuzzy search with command palette interface  
+- **Department Filtering**: Filter 9,733+ courses by department with interactive sidebar
 - **Prerequisite Tracking**: Visualize course prerequisites and postrequisites
-- **Course Ratings**: Integration with BerkeleyEval for course ratings and reviews
+- **Course Ratings**: Realistic BerkeleyEval ratings for course evaluation
+- **Real-time Statistics**: Live course and connection counts
 - **Modern UI**: Dark mode support with Tailwind CSS and Radix UI components
+- **Error Handling**: Graceful error boundaries and loading states
 
 ## Technology Stack
 
@@ -22,34 +25,41 @@ A 3D force-directed graph visualization of UC Berkeley courses, built with Next.
 - **Recharts** for data visualizations
 
 ### Backend/Data
-- **Python** with BeautifulSoup4 for web scraping
+- **Python** with CSV parsing for clean data extraction
 - **Next.js API routes** for BerkeleyEval integration
-- **UC Berkeley Course Catalog API** for course data
+- **UC Berkeley Course Catalog** official CSV data (9,733+ courses)
+- **Deterministic ratings** with realistic correlations
 
 ## Project Structure
 
 ```
-uc-berkeley-course-visualizer/
+course-visualizer/
 ├── frontend/                    # Next.js application
 │   ├── app/                    # App Router pages
 │   │   ├── api/               # API routes
 │   │   │   └── berkeley-eval/ # Course ratings API
 │   │   ├── globals.css        # Global styles
 │   │   ├── layout.tsx         # Root layout
-│   │   └── page.tsx           # Main visualization page
+│   │   ├── page.tsx           # Main visualization page
+│   │   ├── error.tsx          # Error boundary
+│   │   └── loading.tsx        # Loading state
 │   ├── components/             # React components
-│   │   ├── ui/               # UI components
+│   │   ├── ui/               # Radix UI components
 │   │   ├── search-bar.tsx    # Course search component
+│   │   ├── department-filter.tsx  # Department filtering
 │   │   ├── berkeley-eval-donut.tsx
 │   │   └── berkeley-eval-bar.tsx
 │   ├── data/                  # Static course data
-│   │   └── berkeley-courses-data.json
+│   │   └── berkeley-courses-data.json  # 9,733 courses
 │   └── lib/                   # Utilities and types
 │       ├── types.ts          # TypeScript types
 │       ├── utils.ts          # Utility functions
 │       └── command-score.ts  # Fuzzy search algorithm
-└── scripts/                   # Python data scraping
-    └── get_berkeley_course_data.py
+├── scripts/                   # Python data processing
+│   ├── improved_scraper.py   # Main data processor
+│   └── get_berkeley_course_data.py
+├── courses-report.2025-07-31.csv  # UC Berkeley course data
+└── .gitignore
 ```
 
 ## Getting Started
@@ -80,9 +90,11 @@ uc-berkeley-course-visualizer/
    pip install beautifulsoup4 requests
    ```
 
-4. **Scrape course data**
+4. **Generate course data** (optional - data already included)
    ```bash
-   python get_berkeley_course_data.py
+   cd scripts
+   python improved_scraper.py
+   cd ..
    ```
 
 5. **Start the development server**
@@ -97,17 +109,19 @@ uc-berkeley-course-visualizer/
 ## Data Sources
 
 ### UC Berkeley Course Catalog
-The application scrapes course data from UC Berkeley's course catalog API:
-- Course codes and names
-- Prerequisites and postrequisites
-- Course descriptions and units
+The application uses official UC Berkeley course catalog data:
+- **9,733 courses** from all departments
+- Course codes, names, and descriptions
+- Unit requirements and terms offered
+- Prerequisites extracted from descriptions
 
 ### BerkeleyEval Integration
-Course ratings are fetched from BerkeleyEval (mock data for now):
-- Overall course ratings
-- Difficulty and workload ratings
-- Usefulness ratings
-- Review counts
+Course ratings use deterministic, realistic mock data:
+- Overall course ratings (correlated with usefulness)
+- Difficulty and workload ratings (correlated)
+- Lower division courses have more reviews
+- Same course always gets same rating
+- Note: Replace with real BerkeleyTime API for production
 
 ## Key Features
 
@@ -119,9 +133,11 @@ Course ratings are fetched from BerkeleyEval (mock data for now):
 
 ### Search and Navigation
 - **Fuzzy search**: Find courses by code or name
-- **Command palette**: Modern search interface
+- **Command palette**: Modern search interface with keyboard shortcuts
+- **Department filtering**: Filter by one or multiple departments
 - **Course selection**: Click nodes or search results to focus
 - **Prerequisite chains**: Navigate through course dependencies
+- **Real-time stats**: See filtered course and connection counts
 
 ### Course Information
 - **Course details**: Code, name, units, description
@@ -131,24 +147,29 @@ Course ratings are fetched from BerkeleyEval (mock data for now):
 
 ## Customization
 
-### Adding New Departments
-Edit `scripts/get_berkeley_course_data.py`:
-```python
-departments = [
-    "COMPSCI", "MATH", "STAT", "PHYSICS", "CHEM", "BIOLOGY", 
-    # Add your department here
-    "YOUR_DEPT"
-]
-```
+### Updating Course Data
+The course data is sourced from the UC Berkeley course catalog CSV. To update:
+
+1. Download the latest course report from UC Berkeley
+2. Replace `courses-report.2025-07-31.csv`
+3. Run the data processor:
+   ```bash
+   cd scripts
+   python improved_scraper.py
+   ```
 
 ### Modifying Visual Styles
-Edit `frontend/app/globals.css` for custom colors and themes.
+Edit `frontend/app/globals.css` for custom colors and themes. The app supports both light and dark modes.
 
-### Updating Course Data
-Run the Python script to refresh course data:
-```bash
-cd scripts
-python get_berkeley_course_data.py
+### Integrating Real BerkeleyTime API
+Replace the mock data in `frontend/app/api/berkeley-eval/route.ts` with actual BerkeleyTime API calls:
+
+```typescript
+// Example with real API
+const response = await fetch(
+  `https://berkeleytime.com/api/course/${courseCode}/`
+);
+const data = await response.json();
 ```
 
 ## Deployment
@@ -165,13 +186,37 @@ The application can be deployed to any platform that supports Next.js:
 - Railway
 - DigitalOcean App Platform
 
+## Development
+
+### Running in Development Mode
+```bash
+cd frontend
+npm run dev
+```
+
+The app will be available at http://localhost:3000
+
+### Building for Production
+```bash
+cd frontend
+npm run build
+npm run start
+```
+
+### Data Statistics
+- **9,733 courses** across all UC Berkeley departments
+- **89 prerequisite relationships** (high-quality validated data)
+- **150+ departments** represented
+- Top departments: EDUC (310), POLSCI (293), HISTORY (266)
+
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Submit a pull request
 
 ## License
 
