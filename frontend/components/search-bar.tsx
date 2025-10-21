@@ -116,7 +116,7 @@ export default function SearchBar({
                 onValueChange={handleValueChange}
               />
               <CommandList>
-                <CommandEmpty>No courses found.</CommandEmpty>
+                {search.length > 0 && <CommandEmpty>No courses found.</CommandEmpty>}
                 {courses
                   .map((course) => ({
                     value: fullName(course),

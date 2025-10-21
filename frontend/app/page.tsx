@@ -183,7 +183,7 @@ export default function Home() {
 
       {/* Department Filter Sidebar */}
       {showDepartmentFilter && (
-        <div className="fixed top-20 right-4 z-40 w-80 bg-background border rounded-lg shadow-lg p-4">
+        <div className="fixed top-[88px] right-4 z-40 w-80 max-h-[calc(100vh-120px)] overflow-hidden bg-background border rounded-lg shadow-lg p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Filter by Department</h3>
             <button
