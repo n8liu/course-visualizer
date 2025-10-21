@@ -13,6 +13,7 @@ import * as THREE from "three";
 import tinyColor, { type ColorInput } from "tinycolor2";
 import SearchBar from "@/components/search-bar";
 import DepartmentFilter from "@/components/department-filter";
+import LevelFilter, { LEVELS } from "@/components/level-filter";
 import { Node } from "@/lib/types";
 import { X } from "lucide-react";
 
@@ -36,21 +37,43 @@ export default function Home() {
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([
     "COMPSCI", "MATH", "STAT", "PHYSICS", "EECS", "DATA"
   ]); // Start with popular STEM departments to reduce initial load
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([
+    "lower", "upper", "graduate"
+  ]); // Start with all levels
   const [showDepartmentFilter, setShowDepartmentFilter] = useState(false);
 
   const fgRef: RefObject<
     ForceGraphMethods<NodeObject, LinkObject> | undefined
   > = useRef(undefined);
 
-  // Filter courses and links based on selected departments
+  // Helper to extract course number from ID
+  const getCourseNumber = (courseId: string): number => {
+    const match = courseId.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+  };
+
+  // Filter courses and links based on selected departments and levels
   const filteredData = useMemo(() => {
-    if (selectedDepartments.length === 0) {
-      return berkeleyCoursesData;
+    let filteredNodes = berkeleyCoursesData.nodes;
+
+    // Filter by department
+    if (selectedDepartments.length > 0) {
+      filteredNodes = filteredNodes.filter((node) =>
+        selectedDepartments.includes(node.department || "")
+      );
     }
 
-    const filteredNodes = berkeleyCoursesData.nodes.filter((node) =>
-      selectedDepartments.includes(node.department || "")
-    );
+    // Filter by course level
+    if (selectedLevels.length > 0 && selectedLevels.length < LEVELS.length) {
+      filteredNodes = filteredNodes.filter((node) => {
+        const courseNum = getCourseNumber(node.id);
+        return selectedLevels.some((levelId) => {
+          const level = LEVELS.find((l) => l.id === levelId);
+          if (!level) return false;
+          return courseNum >= level.range[0] && courseNum <= level.range[1];
+        });
+      });
+    }
     
     const nodeIds = new Set(filteredNodes.map((n) => n.id));
     
@@ -63,7 +86,7 @@ export default function Home() {
       nodes: filteredNodes,
       links: filteredLinks,
     };
-  }, [selectedDepartments]);
+  }, [selectedDepartments, selectedLevels]);
 
   const focusNode = useCallback(
     (node: {
@@ -178,14 +201,14 @@ export default function Home() {
         onSearchChange={setSearch}
         isLoading={isEngineRunning}
         onFilterClick={() => setShowDepartmentFilter(!showDepartmentFilter)}
-        filterCount={selectedDepartments.length}
+        filterCount={selectedDepartments.length + (selectedLevels.length < LEVELS.length ? selectedLevels.length : 0)}
       />
 
       {/* Department Filter Sidebar */}
       {showDepartmentFilter && (
-        <div className="fixed top-[88px] right-4 z-40 w-80 max-h-[calc(100vh-120px)] overflow-hidden bg-background border rounded-lg shadow-lg p-4">
+        <div className="fixed top-[88px] right-4 z-40 w-80 max-h-[calc(100vh-120px)] overflow-y-auto bg-background border rounded-lg shadow-lg p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Filter by Department</h3>
+            <h3 className="font-semibold">Filters</h3>
             <button
               onClick={() => setShowDepartmentFilter(false)}
               className="p-1 hover:bg-accent rounded-md"
@@ -193,11 +216,26 @@ export default function Home() {
               <X className="h-4 w-4" />
             </button>
           </div>
-          <DepartmentFilter
-            courses={berkeleyCoursesData.nodes}
-            selectedDepartments={selectedDepartments}
-            onDepartmentsChange={setSelectedDepartments}
-          />
+          
+          {/* Level Filter */}
+          <div className="mb-6">
+            <LevelFilter
+              selectedLevels={selectedLevels}
+              onLevelsChange={setSelectedLevels}
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="border-t my-4"></div>
+
+          {/* Department Filter */}
+          <div>
+            <DepartmentFilter
+              courses={berkeleyCoursesData.nodes}
+              selectedDepartments={selectedDepartments}
+              onDepartmentsChange={setSelectedDepartments}
+            />
+          </div>
         </div>
       )}
 
