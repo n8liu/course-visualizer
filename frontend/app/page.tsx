@@ -7,12 +7,14 @@ import {
 } from "react-force-graph-3d";
 
 import berkeleyCoursesData from "../data/berkeley-courses-data.json";
-import { RefObject, useCallback, useRef, useState } from "react";
+import { RefObject, useCallback, useRef, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import * as THREE from "three";
 import tinyColor, { type ColorInput } from "tinycolor2";
 import SearchBar from "@/components/search-bar";
+import DepartmentFilter from "@/components/department-filter";
 import { Node } from "@/lib/types";
+import { X } from "lucide-react";
 
 const ForceGraph = dynamic(() => import("react-force-graph-3d"), {
   ssr: false,
@@ -31,10 +33,35 @@ export default function Home() {
   const [focusedCourse, setFocusedCourse] = useState<Node | null>(null);
   const [search, setSearch] = useState("");
   const [isEngineRunning, setIsEngineRunning] = useState(true);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [showDepartmentFilter, setShowDepartmentFilter] = useState(false);
 
   const fgRef: RefObject<
     ForceGraphMethods<NodeObject, LinkObject> | undefined
   > = useRef(undefined);
+
+  // Filter courses and links based on selected departments
+  const filteredData = useMemo(() => {
+    if (selectedDepartments.length === 0) {
+      return berkeleyCoursesData;
+    }
+
+    const filteredNodes = berkeleyCoursesData.nodes.filter((node) =>
+      selectedDepartments.includes(node.department || "")
+    );
+    
+    const nodeIds = new Set(filteredNodes.map((n) => n.id));
+    
+    const filteredLinks = berkeleyCoursesData.links.filter(
+      (link) =>
+        nodeIds.has(link.source as string) && nodeIds.has(link.target as string)
+    );
+
+    return {
+      nodes: filteredNodes,
+      links: filteredLinks,
+    };
+  }, [selectedDepartments]);
 
   const focusNode = useCallback(
     (node: {
@@ -78,7 +105,7 @@ export default function Home() {
             x: 0,
             y: 0,
             z:
-              Math.cbrt(berkeleyCoursesData.nodes.length) *
+              Math.cbrt(filteredData.nodes.length) *
               CAMERA_DISTANCE2NODES_FACTOR,
           },
           { x: 0, y: 0, z: 0 },
@@ -88,7 +115,7 @@ export default function Home() {
       return;
     }
 
-    const node = berkeleyCoursesData.nodes.find(
+    const node = filteredData.nodes.find(
       (node) => node.id === course.id
     ) as NodeObject<
       NodeObject<{
@@ -138,18 +165,56 @@ export default function Home() {
   );
 
   return (
-    <main>
+    <main className="relative">
       <SearchBar
-        courses={berkeleyCoursesData.nodes}
-        links={berkeleyCoursesData.links}
+        courses={filteredData.nodes}
+        links={filteredData.links}
         onCourseSelect={handleSelectedCourse}
         selectedCourse={focusedCourse}
         search={search}
         onSearchChange={setSearch}
         isLoading={isEngineRunning}
+        onFilterClick={() => setShowDepartmentFilter(!showDepartmentFilter)}
+        filterCount={selectedDepartments.length}
       />
+
+      {/* Department Filter Sidebar */}
+      {showDepartmentFilter && (
+        <div className="fixed top-20 right-4 z-40 w-80 bg-background border rounded-lg shadow-lg p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Filter by Department</h3>
+            <button
+              onClick={() => setShowDepartmentFilter(false)}
+              className="p-1 hover:bg-accent rounded-md"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <DepartmentFilter
+            courses={berkeleyCoursesData.nodes}
+            selectedDepartments={selectedDepartments}
+            onDepartmentsChange={setSelectedDepartments}
+          />
+        </div>
+      )}
+
+      {/* Course Stats */}
+      <div className="fixed bottom-4 left-4 z-40 bg-background/90 backdrop-blur-sm border rounded-lg shadow-lg px-4 py-2">
+        <div className="text-sm">
+          <span className="font-medium">{filteredData.nodes.length}</span> courses
+          {selectedDepartments.length > 0 && (
+            <span className="text-muted-foreground ml-2">
+              ({selectedDepartments.length} departments)
+            </span>
+          )}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {filteredData.links.length} connections
+        </div>
+      </div>
+
       <ForceGraph
-        graphData={berkeleyCoursesData}
+        graphData={filteredData}
         nodeAutoColorBy={(node) => (node.id as string).match(/[a-zA-Z]+/)![0]}
         nodeLabel={(node) => `${node.id} - ${node.name}`}
         linkDirectionalArrowLength={3.5}

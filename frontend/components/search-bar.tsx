@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { Link as CourseLink, Node, BerkeleyEvalRating } from "@/lib/types";
 import { BerkeleyEvalData } from "@/app/api/berkeley-eval/route";
 import BerkeleyEvalDonut from "./berkeley-eval-donut";
-import { LoaderCircle, X } from "lucide-react";
+import { LoaderCircle, X, Filter } from "lucide-react";
 import BerkeleyEvalBar from "./berkeley-eval-bar";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -23,6 +23,8 @@ interface SearchBarProps {
   onSearchChange: (search: string) => void;
   search: string;
   isLoading: boolean;
+  onFilterClick?: () => void;
+  filterCount?: number;
 }
 
 type CourseInfo = {
@@ -39,6 +41,8 @@ export default function SearchBar({
   onSearchChange,
   links,
   isLoading = true,
+  onFilterClick,
+  filterCount = 0,
 }: SearchBarProps) {
   const [courseInfo, setCourseInfo] = useState<CourseInfo | null>(null);
 
@@ -140,10 +144,29 @@ export default function SearchBar({
             </Command>
           </div>
 
+          {onFilterClick && (
+            <button
+              onClick={onFilterClick}
+              className={cn(
+                "p-2 hover:bg-accent rounded-md relative",
+                filterCount > 0 && "text-primary"
+              )}
+              title="Filter by department"
+            >
+              <Filter className="h-4 w-4" />
+              {filterCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  {filterCount}
+                </span>
+              )}
+            </button>
+          )}
+
           {selectedCourse && (
             <button
               onClick={handleClearSearch}
               className="p-2 hover:bg-accent rounded-md"
+              title="Clear selection"
             >
               <X className="h-4 w-4" />
             </button>
